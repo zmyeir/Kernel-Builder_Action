@@ -13,6 +13,7 @@ export KBUILD_BUILD_HOST=buildhost
 # Iterate over configurations
 build_config() {
     GKI_VERSION=android14-6.1
+    KWORKSPACE=/mnt/kernel_workspace
 
     # Log file for this build in case of failure
     # LOG_FILE="../${CONFIG}_build.log"
@@ -51,38 +52,46 @@ build_config() {
 
     # Apply KernelSU and SUSFS patches
     echo "Adding KernelSU..."
-    curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash -
+    KSU_NEXT_BRANCH=next-susfs-$(echo "$GKI_VERSION" | sed 's/ndroid//g')
+    wget -qO setup.sh https://raw.githubusercontent.com/rifsxd/KernelSU-Next/refs/heads/next/kernel/setup.sh
+    chmod +x setup.sh
+    bash ./setup.sh "$KSU_NEXT_BRANCH"
+    cd "$WORK_DIR/KernelSU-Next"
+    REPO_LINK=$(git config --get remote.origin.url)
+    cd "$WORK_DIR"
+
+    # curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash -
 
     echo "Applying SUSFS patches..."
-    cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU/
-    cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${GKI_VERSION}.patch ./common/
-    cp ../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
-    cp ../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
-    cp ../susfs4ksu/kernel_patches/fs/sus_su.c ./common/fs/
-    cp ../susfs4ksu/kernel_patches/include/linux/sus_su.h ./common/include/linux/
+    #cp ${KWORKSPACE}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ${KWORKSPACE}/${GKI_VERSION}/KernelSU/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/50_add_susfs_in_gki-${GKI_VERSION}.patch ${KWORKSPACE}/${GKI_VERSION}/common/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/include/linux/susfs.h ${KWORKSPACE}/${GKI_VERSION}/common/include/linux/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/fs/sus_su.c ./common/fs/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/include/linux/sus_su.h ${KWORKSPACE}/${GKI_VERSION}/common/include/linux/
 
     # Apply the patches
-    cd ./KernelSU
-    pwd
-    patch -p1 < 10_enable_susfs_for_ksu.patch
-    cd ../common
+    #cd ${KWORKSPACE}/${GKI_VERSION}/KernelSU
+    #pwd
+    #patch -p1 < 10_enable_susfs_for_ksu.patch
+    cd ${KWORKSPACE}/${GKI_VERSION}/common
     pwd
     patch -p1 < 50_add_susfs_in_gki-${GKI_VERSION}.patch
-    cd ..
+    cd ${KWORKSPACE}/${GKI_VERSION}
 
     # Add configuration settings for SUSFS
     echo "Adding configuration settings to gki_defconfig..."
-    echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
 
     # Build kernel
