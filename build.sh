@@ -90,6 +90,8 @@ build_config() {
     echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
+    sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
     # Build kernel
     echo "Building kernel..."
