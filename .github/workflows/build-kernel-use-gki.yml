@@ -1,0 +1,78 @@
+name: Build Kernel GKI
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Kernel by ${{ github.actor }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
+    steps:
+    - name: Set swap to 10G
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 10
+
+    - name: Setup build kernel environment
+      run: |
+        echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%y%m%d")" >> $GITHUB_ENV
+        sudo apt-get update
+        sudo apt-get install git repo dwarves libelf-dev ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+        mkdir -p $GITHUB_WORKSPACE/kernel_workspace
+
+    - name: Download Clang-aosp
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace
+        mkdir clang-aosp
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-14.0.0_r18/clang-r487747c.tar.gz -O $GITHUB_WORKSPACE/kernel_workspace/clang-r487747c.tar.gz
+        tar -C clang-aosp/ -zxvf clang-r487747c.tar.gz
+
+    - name: Download source code
+      run: |
+        sudo mkdir -p /mnt/kernel_workspace
+        sudo chmod 0777 /mnt/kernel_workspace
+        cd /mnt/kernel_workspace
+        pwd
+        patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
+        export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
+        export CLANG_TRIPLE=aarch64-linux-gnu-
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export HEADER_ARCH=arm64
+        export CC=clang
+        export CXX=clang++
+        export LD=ld.lld
+        export AR=llvm-ar
+        export NM=llvm-nm
+        export OBJCOPY=llvm-objcopy
+        export OBJDUMP=llvm-objdump
+        export READELF=llvm-readelf
+        export OBJSIZE=llvm-size
+        export STRIP=llvm-strip 
+        export LLVM=1
+        export LLVM_IAS=1
+        wget https://raw.githubusercontent.com/zmyeir/Kernel-Builder_Action/refs/heads/main/build.sh
+        chmod 777 build.sh
+        ./build.sh
+        cp /mnt/kernel_workspace/Image $GITHUB_WORKSPACE/kernel_workspace/
+
+    - name: Make Anykernel3
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace
+        git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-5.15
+        cp $GITHUB_WORKSPACE/kernel_workspace/Image AnyKernel3/
+
+    - name: Upload Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: Image
+        path: kernel_workspace/Image
+
+    - name: Upload AnyKernel3
+      uses: actions/upload-artifact@v4
+      with:
+        name: AK3-${{ env.BUILD_TIME }}
+        path: kernel_workspace/AnyKernel3/*
