@@ -91,7 +91,7 @@ build_config() {
     # Build kernel
     echo "Building kernel..."
     echo "Running Bazel build..."
-    sed -i "/stable_scmversion_cmd/s/android14.*-maybe-dirty/lts-Ryhoaca+/g" ./build/kernel/kleaf/impl/stamp.bzl
+    sed -i "/stable_scmversion_cmd/s/android14-11-maybe-dirty/lts-Ryhoaca+/g" ./build/kernel/kleaf/impl/stamp.bzl
     sed -i '2s/check_defconfig//' ./common/build.config.gki
     rm -rf ./common/android/abi_gki_protected_exports_aarch64
     rm -rf ./common/android/abi_gki_protected_exports_x86_64
