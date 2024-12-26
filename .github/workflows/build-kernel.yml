@@ -47,7 +47,7 @@ jobs:
         pwd
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
         cd ./KernelSU/kernel
-        pwf
+        pwd
         sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=11989/' ./Makefile
         cd ../../
         pwd
