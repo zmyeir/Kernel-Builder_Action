@@ -56,9 +56,6 @@ build_config() {
     wget -qO setup.sh https://raw.githubusercontent.com/rifsxd/KernelSU-Next/refs/heads/next/kernel/setup.sh
     chmod +x setup.sh
     bash ./setup.sh "$KSU_NEXT_BRANCH"
-    cd "$WORK_DIR/KernelSU-Next"
-    REPO_LINK=$(git config --get remote.origin.url)
-    cd "$WORK_DIR"
 
     # curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash -
 
