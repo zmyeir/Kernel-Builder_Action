@@ -86,6 +86,11 @@ build_config() {
     patch -p1 < 10_enable_susfs_for_ksu.patch
     cd ../common
     patch -p1 < 50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch
+    # Add lxc support 
+    git clone https://github.com/tomxi1997/lxc-docker-support-for-android
+    ls -lah .
+    echo 'source "lxc-docker-support-for-android/Kconfig"' >> "Kconfig"
+    sh $(pwd)/lxc-docker-support-for-android/runcpatch.sh $(pwd)/kernel/cgroup/cgroup.c
     cd ..
 
     # Add configuration settings for SUSFS
