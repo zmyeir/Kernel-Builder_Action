@@ -36,7 +36,6 @@ jobs:
         sudo chmod 0777 /mnt/kernel_workspace
         cd /mnt/kernel_workspace
         pwd
-        patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export CLANG_TRIPLE=aarch64-linux-gnu-
         export ARCH=arm64
