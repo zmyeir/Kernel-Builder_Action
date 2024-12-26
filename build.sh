@@ -52,15 +52,10 @@ build_config() {
 
     # Apply KernelSU and SUSFS patches
     echo "Adding KernelSU..."
-    KSU_NEXT_BRANCH=next-susfs-$(echo "$GKI_VERSION" | sed 's/ndroid//g')
-    wget -qO setup.sh https://raw.githubusercontent.com/rifsxd/KernelSU-Next/refs/heads/next/kernel/setup.sh
-    chmod +x setup.sh
-    bash ./setup.sh "$KSU_NEXT_BRANCH"
-
-    # curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash -
+    curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash -
 
     echo "Applying SUSFS patches..."
-    #cp ${KWORKSPACE}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ${KWORKSPACE}/${GKI_VERSION}/KernelSU/
+    cp ${KWORKSPACE}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ${KWORKSPACE}/${GKI_VERSION}/KernelSU/
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/50_add_susfs_in_gki-${GKI_VERSION}.patch ${KWORKSPACE}/${GKI_VERSION}/common/
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/include/linux/susfs.h ${KWORKSPACE}/${GKI_VERSION}/common/include/linux/
@@ -68,9 +63,9 @@ build_config() {
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/include/linux/sus_su.h ${KWORKSPACE}/${GKI_VERSION}/common/include/linux/
 
     # Apply the patches
-    #cd ${KWORKSPACE}/${GKI_VERSION}/KernelSU
-    #pwd
-    #patch -p1 < 10_enable_susfs_for_ksu.patch
+    cd ${KWORKSPACE}/${GKI_VERSION}/KernelSU
+    pwd
+    patch -p1 < 10_enable_susfs_for_ksu.patch
     cd ${KWORKSPACE}/${GKI_VERSION}/common
     pwd
     patch -p1 < 50_add_susfs_in_gki-${GKI_VERSION}.patch
