@@ -62,6 +62,9 @@ jobs:
         pwd
         patch -p1 < 10_enable_susfs_for_ksu.patch
         cd ../common
+        wget https://raw.githubusercontent.com/zmyeir/Kernel-Builder_Action/refs/heads/main/patches/kconfig.sh
+        chmod 777 kconfig.sh
+        ./kconfig.sh arch/arm64/configs/gki_defconfig -w
         pwd
         patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
