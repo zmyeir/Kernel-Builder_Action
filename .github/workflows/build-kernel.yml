@@ -62,9 +62,9 @@ jobs:
         pwd
         patch -p1 < 10_enable_susfs_for_ksu.patch
         cd ../common
-        wget https://raw.githubusercontent.com/zmyeir/Kernel-Builder_Action/refs/heads/main/patches/kconfig.sh
-        chmod 777 kconfig.sh
-        ./kconfig.sh arch/arm64/configs/gki_defconfig -w
+        git clone https://github.com/tomxi1997/lxc-docker-support-for-android
+        echo 'source "lxc-docker-support-for-android/Kconfig"' >> "Kconfig"
+        sh $(pwd)/lxc-docker-support-for-android/runcpatch.sh $(pwd)/kernel/cgroup/cgroup.c
         pwd
         patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
@@ -97,6 +97,9 @@ jobs:
         echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_DOCKER=y" >> ./common/arch/arm64/configs/gki_defconfig
+        sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ./common/arch/arm64/configs/gki_defconfig
+        echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ./common/arch/arm64/configs/gki_defconfig
         cd ..
         pwd
         sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Ryhoaca+/g" ./kernel_platform/build/kernel/kleaf/impl/stamp.bzl
