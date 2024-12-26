@@ -55,7 +55,10 @@ build_config() {
     git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "gki-${ANDROID_VERSION}-${KERNEL_VERSION}"
 
     mkdir -p "$CONFIG"
+    ls -lah .
+    pwd
     cd "$CONFIG"
+    pwd
 
     # Initialize and sync kernel source with updated repo commands
     echo "Initializing and syncing kernel source..."
@@ -79,7 +82,7 @@ build_config() {
 
     echo "Applying SUSFS patches..."
     cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU/
-    cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${ANDROID_VERSION}-${KERNEL_VERSION}.patch ./common/
+    cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
     cp ../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
     cp ../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
     cp ../susfs4ksu/kernel_patches/fs/sus_su.c ./common/fs/
