@@ -85,8 +85,17 @@ build_config() {
     echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
-    #sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
-    #echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    # Add config
+    echo "CONFIG_PID_NS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_IPC_NS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_USER_NS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_CGROUP_DEVICE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_IP_VS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_BRIDGE_NETFILTER=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_NETFILTER_XT_MATCH_IPVS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_POSIX_MQUEUE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_CGROUP_PIDS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
     # Build kernel
     echo "Building kernel..."
