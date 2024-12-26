@@ -38,7 +38,6 @@ build_config() {
     LOG_FILE="../${CONFIG}_build.log"
 
     echo "Starting build for $CONFIG using branch $FORMATTED_BRANCH..."
-    # Check if AnyKernel3 repo exists, remove it if it does
 
     # Check if susfs4ksu repo exists, remove it if it does
     if [ -d "./susfs4ksu" ]; then
@@ -107,44 +106,23 @@ build_config() {
 
     # Build kernel
     echo "Building kernel for $CONFIG..."
-
-    # Check if build.sh exists, if it does, run the default build script
-    if [ -e build/build.sh ]; then
-        echo "build.sh found, running default build script..."
-        # Modify config files for the default build process
-        sed -i '2s/check_defconfig//' ./common/build.config.gki
-        sed -i "s/dirty/'Ryhoaca+'/g" ./common/scripts/setlocalversion
-        LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-    
-        # Check if the boot.img file exists
-        if [ "$ANDROID_VERSION" = "android12" ]; then
-            mkdir bootimgs
-            cp ./out/${ANDROID_VERSION}-${KERNEL_VERSION}/dist/Image /mnt/kernel_workspace
-
-        elif [ "$ANDROID_VERSION" = "android13" ]; then
-            cp ./out/${ANDROID_VERSION}-${KERNEL_VERSION}/dist/Image /mnt/kernel_workspace
-        fi
-    else
         # Use Bazel build if build.sh exists
-        echo "Running Bazel build..."
-        sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Ryhoaca+/g" ./build/kernel/kleaf/impl/stamp.bzl
-        sed -i '2s/check_defconfig//' ./common/build.config.gki
-        rm -rf ./common/android/abi_gki_protected_exports_aarch64
-        rm -rf ./common/android/abi_gki_protected_exports_x86_64
-        tools/bazel build --config=fast //common:kernel_aarch64_dist
-        
-
-        # Creating Boot imgs
-        echo "Creating boot.imgs..."
-        if [ "$ANDROID_VERSION" = "android14" ]; then
-            cp ./bazel-bin/common/kernel_aarch64/Image /mnt/kernel_workspace/
-        fi
+    echo "Running Bazel build..."
+    sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Ryhoaca+/g" ./build/kernel/kleaf/impl/stamp.bzl
+    sed -i '2s/check_defconfig//' ./common/build.config.gki
+    rm -rf ./common/android/abi_gki_protected_exports_aarch64
+    rm -rf ./common/android/abi_gki_protected_exports_x86_64
+    tools/bazel build --config=fast //common:kernel_aarch64_dist
+    # Creating Boot imgs
+    echo "Creating boot.imgs..."
+    if [ "$ANDROID_VERSION" = "android14" ]; then
+        cp ./bazel-bin/common/kernel_aarch64/Image /mnt/kernel_workspace/
     fi
 
 }
 
 # Concurrent build management
-build_config "android14-6.1-112-2024-11" 
+build_config "android14-6.1-X-lts"
 
 
 echo "Build process complete."
