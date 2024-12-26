@@ -32,7 +32,9 @@ jobs:
 
     - name: Download source code
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace
+        sudo mkdir -p /mnt/kernel_workspace
+        sudo chmod 0777 /mnt/kernel_workspace
+        cd /mnt/kernel_workspace
         git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
         mkdir oneplus12_v
         cd ./oneplus12_v
@@ -45,7 +47,7 @@ jobs:
         pwd
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
         cd ./KernelSU/kernel
-        pwd
+        pwf
         sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=11989/' ./Makefile
         cd ../../
         pwd
@@ -67,7 +69,6 @@ jobs:
         export ARCH=arm64
         export SUBARCH=arm64
         export HEADER_ARCH=arm64
-        TOOL_ARGS+=("ARCH=${ARCH}" "SUBARCH=${SUBARCH}" "HEADER_ARCH=${HEADER_ARCH}")
         export CC=clang
         export CXX=clang++
         export LD=ld.lld
@@ -94,12 +95,13 @@ jobs:
         echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
         cd ..
-        sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Wild+/g" ./kernel_platform/build/kernel/kleaf/impl/stamp.bzl
+        pwd
+        sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Ryhoaca+/g" ./kernel_platform/build/kernel/kleaf/impl/stamp.bzl
         sed -i "s/dirty/'Ryhoaca+'/g" ./kernel_platform/common/scripts/setlocalversion
         sed -i '2s/check_defconfig//' ./kernel_platform/common/build.config.gki
         ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
         cp ./out/dist/Image $GITHUB_WORKSPACE/kernel_workspace/
-  
+
     - name: Make Anykernel3
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
