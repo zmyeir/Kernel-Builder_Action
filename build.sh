@@ -85,13 +85,13 @@ build_config() {
     echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
-    sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
-    echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    #sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    #echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
     # Build kernel
     echo "Building kernel..."
     echo "Running Bazel build..."
-    sed -i "/stable_scmversion_cmd/s/android14-11-maybe-dirty/lts-Ryhoaca+/g" ./build/kernel/kleaf/impl/stamp.bzl
+    sed -i "/stable_scmversion_cmd/s/maybe-dirty/Ryhoaca/g" ./build/kernel/kleaf/impl/stamp.bzl
     sed -i '2s/check_defconfig//' ./common/build.config.gki
     rm -rf ./common/android/abi_gki_protected_exports_aarch64
     rm -rf ./common/android/abi_gki_protected_exports_x86_64
