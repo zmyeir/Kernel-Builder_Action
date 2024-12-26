@@ -39,12 +39,6 @@ build_config() {
 
     echo "Starting build for $CONFIG using branch $FORMATTED_BRANCH..."
     # Check if AnyKernel3 repo exists, remove it if it does
-    if [ -d "./AnyKernel3" ]; then
-        echo "Removing existing AnyKernel3 directory..."
-        rm -rf ./AnyKernel3
-    fi
-    echo "Cloning AnyKernel3 repository..."
-    git clone https://github.com/TheRyhoacaJames/AnyKernel3.git -b "${ANDROID_VERSION}-${KERNEL_VERSION}"
 
     # Check if susfs4ksu repo exists, remove it if it does
     if [ -d "./susfs4ksu" ]; then
