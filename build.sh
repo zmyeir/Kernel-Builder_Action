@@ -94,7 +94,7 @@ build_config() {
     #echo "CONFIG_BRIDGE_NETFILTER=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     #echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     #echo "CONFIG_NETFILTER_XT_MATCH_IPVS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
-    #echo "CONFIG_POSIX_MQUEUE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
+    echo "CONFIG_POSIX_MQUEUE=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     #echo "CONFIG_CGROUP_PIDS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
     # Build kernel
