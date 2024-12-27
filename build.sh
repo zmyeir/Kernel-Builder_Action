@@ -52,9 +52,9 @@ build_config() {
 
     # Apply KernelSU and SUSFS patches
     echo "Adding KernelSU..."
-    wget https://raw.githubusercontent.com/5ec1cff/KernelSU/refs/heads/main/kernel/setup.sh
-    sed -i 's|tiann/KernelSU|5ec1cff/KernelSU|' setup.sh
-    bash setup.sh main
+    wget https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh
+    # sed -i 's|tiann/KernelSU|5ec1cff/KernelSU|' setup.sh
+    bash setup.sh magic
 
     echo "Applying SUSFS patches..."
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ${KWORKSPACE}/${GKI_VERSION}/KernelSU/
