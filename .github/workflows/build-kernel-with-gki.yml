@@ -1,4 +1,4 @@
-name: Build Kernel GKI
+name: Build Kernel with GKI
 on:
   workflow_dispatch:
 
@@ -39,7 +39,7 @@ jobs:
         fi
         repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
 
-    - name: Add KernelSU / SUSFS / Misc
+    - name: KernelSU / SUSFS / Misc
       run: |
         cd /mnt/kernel_workspace
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
@@ -78,7 +78,7 @@ jobs:
         rm -rf ./common/android/abi_gki_protected_exports_aarch64
         rm -rf ./common/android/abi_gki_protected_exports_x86_64
 
-    - name: Add KernelSU / SUSFS / Misc
+    - name: Build Kernel
       run: |
         cd /mnt/kernel_workspace
         tools/bazel build --config=fast //common:kernel_aarch64_dist
