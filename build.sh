@@ -52,9 +52,7 @@ build_config() {
 
     # Apply KernelSU and SUSFS patches
     echo "Adding KernelSU..."
-    wget https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh
-    # sed -i 's|tiann/KernelSU|5ec1cff/KernelSU|' setup.sh
-    bash setup.sh magic
+    curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
     echo "Applying SUSFS patches..."
     cp ${KWORKSPACE}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ${KWORKSPACE}/${GKI_VERSION}/KernelSU/
@@ -86,7 +84,6 @@ build_config() {
     echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
     echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
-    echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
 
     # Add config
     echo "CONFIG_PID_NS=y" >> ${KWORKSPACE}/${GKI_VERSION}/common/arch/arm64/configs/gki_defconfig
