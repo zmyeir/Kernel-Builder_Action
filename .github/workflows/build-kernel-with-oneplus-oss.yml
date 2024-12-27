@@ -1,4 +1,4 @@
-name: Build OnePlus 12 Kernel
+name: Build Kernel with OnePlus OSS 
 on:
   workflow_dispatch:
 
@@ -30,7 +30,7 @@ jobs:
         wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-14.0.0_r18/clang-r487747c.tar.gz -O $GITHUB_WORKSPACE/kernel_workspace/clang-r487747c.tar.gz
         tar -C clang-aosp/ -zxvf clang-r487747c.tar.gz
 
-    - name: Download source code
+    - name: Download source code and build
       run: |
         sudo mkdir -p /mnt/kernel_workspace
         sudo chmod 0777 /mnt/kernel_workspace
@@ -62,28 +62,8 @@ jobs:
         pwd
         patch -p1 < 10_enable_susfs_for_ksu.patch
         cd ../common
-        git clone https://github.com/tomxi1997/lxc-docker-support-for-android
-        echo 'source "lxc-docker-support-for-android/Kconfig"' >> "Kconfig"
-        sh $(pwd)/lxc-docker-support-for-android/runcpatch.sh $(pwd)/kernel/cgroup/cgroup.c
-        pwd
         patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
-        export CLANG_TRIPLE=aarch64-linux-gnu-
-        export ARCH=arm64
-        export SUBARCH=arm64
-        export HEADER_ARCH=arm64
-        export CC=clang
-        export CXX=clang++
-        export LD=ld.lld
-        export AR=llvm-ar
-        export NM=llvm-nm
-        export OBJCOPY=llvm-objcopy
-        export OBJDUMP=llvm-objdump
-        export READELF=llvm-readelf
-        export OBJSIZE=llvm-size
-        export STRIP=llvm-strip 
-        export LLVM=1
-        export LLVM_IAS=1
         cd ..
         pwd
         echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -97,9 +77,6 @@ jobs:
         echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
-        echo "CONFIG_DOCKER=y" >> ./common/arch/arm64/configs/gki_defconfig
-        sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ./common/arch/arm64/configs/gki_defconfig
-        echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ./common/arch/arm64/configs/gki_defconfig
         cd ..
         pwd
         sed -i "/stable_scmversion_cmd/s/-maybe-dirty/-Ryhoaca+/g" ./kernel_platform/build/kernel/kleaf/impl/stamp.bzl
