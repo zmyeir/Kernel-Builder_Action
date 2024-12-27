@@ -1,3 +1,29 @@
+From d3a1b90642ab2371a6582ae56cfd57ddd5be8d06 Mon Sep 17 00:00:00 2001
+From: bot <buildbot@buildhost>
+Date: Sat, 28 Dec 2024 07:02:20 +0800
+Subject: [PATCH] apply patch
+
+---
+ kernel/Kconfig           | 143 +++++++++++++
+ kernel/Makefile          |  64 +++++-
+ kernel/allowlist.c       |  10 +-
+ kernel/apk_sign.c        |  14 +-
+ kernel/apk_sign.h        |   2 +-
+ kernel/core_hook.c       | 430 +++++++++++++++++++++++++++++++++++++--
+ kernel/kernel_compat.c   |  10 +
+ kernel/kernel_compat.h   |   1 +
+ kernel/ksu.c             |  16 +-
+ kernel/ksud.c            |  23 ++-
+ kernel/ksud.h            |   2 +-
+ kernel/manager.h         |   2 +-
+ kernel/selinux/rules.c   |  16 +-
+ kernel/selinux/selinux.c | 107 ++++++++--
+ kernel/selinux/selinux.h |  24 ++-
+ kernel/sucompat.c        |  52 ++++-
+ kernel/throne_tracker.c  |   4 +-
+ kernel/throne_tracker.h  |   2 +-
+ 18 files changed, 847 insertions(+), 75 deletions(-)
+
 diff --git a/kernel/Kconfig b/kernel/Kconfig
 index 1f3802f..74a4700 100644
 --- a/kernel/Kconfig
@@ -273,7 +299,7 @@ index 4fbba93..31fd5b2 100644
  	return ksu_queue_work(&ksu_save_work);
  }
 diff --git a/kernel/apk_sign.c b/kernel/apk_sign.c
-index 1f888b1..baef0ba 100644
+index 1f888b1..9af2828 100644
 --- a/kernel/apk_sign.c
 +++ b/kernel/apk_sign.c
 @@ -314,10 +314,12 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
@@ -287,13 +313,15 @@ index 1f888b1..baef0ba 100644
 -	|| check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH)  // ksu official
 -/*	|| check_v2_signature(path, custom_size, custom_hash)  // add more as you like 	*/
 -	);
+-}
 +#ifdef CONFIG_KSU_SUSFS
 +	return (check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) ||
-+			check_v2_signature(path, 384, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549")); // dummy.keystore
++			check_v2_signature(path, 384, "7e0c6d7278a3bb8e364e0fcba95afaf3666cf5ff3c245a3b63c8833bd0445cc4")); // 5ec1cff
 +#else
 +	return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
 +#endif
- }
++}
+\ No newline at end of file
 diff --git a/kernel/apk_sign.h b/kernel/apk_sign.h
 index bed501c..e02aa51 100644
 --- a/kernel/apk_sign.h
@@ -1109,7 +1137,7 @@ index 1ba6d85..e4c6510 100644
  	}
  
 diff --git a/kernel/selinux/selinux.c b/kernel/selinux/selinux.c
-index 4ba20b0..e171e01 100644
+index 4ba20b0..c6a6c5b 100644
 --- a/kernel/selinux/selinux.c
 +++ b/kernel/selinux/selinux.c
 @@ -8,6 +8,14 @@
@@ -1136,7 +1164,7 @@ index 4ba20b0..e171e01 100644
  {
  	if (transive_to_domain(domain)) {
  		pr_err("transive domain failed.\n");
-@@ -52,7 +60,7 @@ if (!is_domain_permissive) {
+@@ -52,35 +60,23 @@ if (!is_domain_permissive) {
  }*/
  }
  
@@ -1144,8 +1172,11 @@ index 4ba20b0..e171e01 100644
 +void ksu_setenforce(bool enforce)
  {
  #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
- #ifdef KSU_COMPAT_USE_SELINUX_STATE
-@@ -63,7 +71,7 @@ void setenforce(bool enforce)
+-#ifdef KSU_COMPAT_USE_SELINUX_STATE
+ 	selinux_state.enforcing = enforce;
+-#else
+-	selinux_enforcing = enforce;
+-#endif
  #endif
  }
  
@@ -1153,8 +1184,25 @@ index 4ba20b0..e171e01 100644
 +bool ksu_getenforce()
  {
  #ifdef CONFIG_SECURITY_SELINUX_DISABLE
- #ifdef KSU_COMPAT_USE_SELINUX_STATE
-@@ -99,7 +107,7 @@ static inline u32 current_sid(void)
+-#ifdef KSU_COMPAT_USE_SELINUX_STATE
+ 	if (selinux_state.disabled) {
+-#else
+-	if (selinux_disabled) {
+-#endif
+ 		return false;
+ 	}
+ #endif
+ 
+ #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
+-#ifdef KSU_COMPAT_USE_SELINUX_STATE
+ 	return selinux_state.enforcing;
+-#else
+-	return selinux_enforcing;
+-#endif
+ #else
+ 	return true;
+ #endif
+@@ -99,7 +95,7 @@ static inline u32 current_sid(void)
  }
  #endif
  
@@ -1163,7 +1211,7 @@ index 4ba20b0..e171e01 100644
  {
  	char *domain;
  	u32 seclen;
-@@ -113,7 +121,7 @@ bool is_ksu_domain()
+@@ -113,7 +109,7 @@ bool is_ksu_domain()
  	return result;
  }
  
@@ -1172,7 +1220,7 @@ index 4ba20b0..e171e01 100644
  {
  	struct task_security_struct *tsec = (struct task_security_struct *)sec;
  	if (!tsec) {
-@@ -131,6 +139,83 @@ bool is_zygote(void *sec)
+@@ -131,6 +127,83 @@ bool is_zygote(void *sec)
  	return result;
  }
  
@@ -1418,3 +1466,6 @@ index 5d7f477..428c737 100644
 +void ksu_track_throne();
  
  #endif
+-- 
+2.47.1
+
