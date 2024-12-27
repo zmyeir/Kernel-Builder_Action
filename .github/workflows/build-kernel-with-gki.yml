@@ -42,7 +42,8 @@ jobs:
     - name: KernelSU / SUSFS / Misc
       run: |
         cd /mnt/kernel_workspace
-        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+        #curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+        curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
         git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
         cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch /mnt/kernel_workspace/KernelSU/
         cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch /mnt/kernel_workspace/common/
@@ -67,6 +68,7 @@ jobs:
         echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_PID_NS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_POSIX_MQUEUE=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
         echo "CONFIG_IPC_NS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
