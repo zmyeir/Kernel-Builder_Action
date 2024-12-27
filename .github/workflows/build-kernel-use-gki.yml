@@ -20,44 +20,69 @@ jobs:
       run: |
         echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%y%m%d")" >> $GITHUB_ENV
         sudo apt-get update
-        sudo apt-get install git dwarves libelf-dev ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+        sudo apt-get install git repo dwarves libelf-dev ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+        curl -so repo https://storage.googleapis.com/git-repo-downloads/repo
+        sudo mv repo /usr/bin
+        sudo chmod +x /usr/bin/repo
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
-
-    #- name: Download Clang-aosp
-      #run: |
-        #cd $GITHUB_WORKSPACE/kernel_workspace
-        #mkdir clang-aosp
-        #wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-14.0.0_r18/clang-r487747c.tar.gz -O $GITHUB_WORKSPACE/kernel_workspace/clang-r487747c.tar.gz
-        #tar -C clang-aosp/ -zxvf clang-r487747c.tar.gz
-        #
-
-    - name: Download source code and Build kernel
-      run: |
         sudo mkdir -p /mnt/kernel_workspace
         sudo chmod 0777 /mnt/kernel_workspace
+
+    - name: Download source code
+      run: |
         cd /mnt/kernel_workspace
-        pwd
-        export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
-        export CLANG_TRIPLE=aarch64-linux-gnu-
-        export ARCH=arm64
-        export SUBARCH=arm64
-        export HEADER_ARCH=arm64
-        export CC=clang
-        export CXX=clang++
-        export LD=ld.lld
-        export AR=llvm-ar
-        export NM=llvm-nm
-        export OBJCOPY=llvm-objcopy
-        export OBJDUMP=llvm-objdump
-        export READELF=llvm-readelf
-        export OBJSIZE=llvm-size
-        export STRIP=llvm-strip 
-        export LLVM=1
-        export LLVM_IAS=1
-        wget https://raw.githubusercontent.com/zmyeir/Kernel-Builder_Action/refs/heads/main/build.sh
-        chmod 777 build.sh
-        ./build.sh
-        cp /mnt/kernel_workspace/Image $GITHUB_WORKSPACE/kernel_workspace/
+        repo init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-android14-6.1-lts
+        REMOTE_BRANCH=$(git ls-remote https://android.googlesource.com/kernel/common android14-6.1-lts)
+        DEFAULT_MANIFEST_PATH=.repo/manifests/default.xml
+        if grep -q deprecated <<< $REMOTE_BRANCH; then
+          sed -i "s/\"android14-6.1-lts\"/\"deprecated\/android14-6.1-lts\"/g" $DEFAULT_MANIFEST_PATH
+        fi
+        repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+
+    - name: Add KernelSU / SUSFS / Misc
+      run: |
+        cd /mnt/kernel_workspace
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+        git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch /mnt/kernel_workspace/KernelSU/
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch /mnt/kernel_workspace/common/
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/fs/susfs.c /mnt/kernel_workspace/common/fs/
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/include/linux/susfs.h /mnt/kernel_workspace/common/include/linux/
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/fs/sus_su.c /mnt/kernel_workspace/common/fs/
+        cp /mnt/kernel_workspace/susfs4ksu/kernel_patches/include/linux/sus_su.h /mnt/kernel_workspace/common/include/linux/
+        cd /mnt/kernel_workspace/KernelSU
+        patch -p1 < 10_enable_susfs_for_ksu.patch
+        cd /mnt/kernel_workspace/common
+        patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
+        cd /mnt/kernel_workspace
+        echo "Adding configuration settings to gki_defconfig..."
+        echo "CONFIG_KSU=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_PID_NS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_POSIX_MQUEUE=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_IPC_NS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_USER_NS=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        echo "CONFIG_BPF_STREAM_PARSER=y" >> /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        cat /mnt/kernel_workspace/common/arch/arm64/configs/gki_defconfig
+        sed -i '/stable_scmversion_cmd/s/maybe-dirty/Ryhoaca/;s/-$android_release-$KMI_GENERATION/-lts/g' ./build/kernel/kleaf/impl/stamp.bzl
+        sed -i '2s/check_defconfig//' ./common/build.config.gki
+        rm -rf ./common/android/abi_gki_protected_exports_aarch64
+        rm -rf ./common/android/abi_gki_protected_exports_x86_64
+
+    - name: Add KernelSU / SUSFS / Misc
+      run: |
+        cd /mnt/kernel_workspace
+        tools/bazel build --config=fast //common:kernel_aarch64_dist
+        cp ./bazel-bin/common/kernel_aarch64/Image $GITHUB_WORKSPACE/kernel_workspace/
 
     - name: Make Anykernel3
       run: |
